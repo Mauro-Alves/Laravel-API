@@ -51,9 +51,11 @@ php artisan install:api
 Iniciar o projeto criado com Laravel
 ```
 php artisan serve
+php artisan serve --host=localhost --port=3000
 ```
 
 Para acessar a API, é recomendado utilizar o Insomnia para simular requisições à API.
 ```
 http://127.0.0.1:8000/api/user
+http://localhost:3000/api/user
 ```
