@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\UserPasswordRequest;
 use App\Http\Requests\UserRequest;
 use App\Models\User;
 use Exception;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class UserController extends Controller
@@ -50,7 +50,13 @@ class UserController extends Controller
         ], 200);
     }
 
-    public function store(UserRequest $request)
+    /**
+     * Cria novo usuário com os dados fornecidos na requisição.
+     * 
+     * @param  \App\Http\Requests\UserRequest  $request O objeto de requisição contendo os dados do usuário a ser criado.
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function store(UserRequest $request): JsonResponse
     {
 
         // Iniciar a transação
@@ -82,8 +88,124 @@ class UserController extends Controller
             return response()->json([
                 'status' => false,
                 'message' => 'Usuário não cadastrado!',
-            ], 201);
+            ], 400);
+        }
+    }
 
+    /**
+     * Atualizar os dados de um usuário existente com base nos dados fornecidos na requisição.
+     * 
+     * @param  \App\Http\Requests\UserRequest  $request O objeto de requisição contendo os dados do usuário a ser atualizado.
+     * @param  \App\Models\User  $user O usuário a ser atualizado.
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function update(UserRequest $request, User $user): JsonResponse
+    {
+
+        // Iniciar a transação
+        DB::beginTransaction();
+
+        try {
+
+            $user->update([
+                'name' => $request->name,
+                'email' => $request->email,
+            ]);
+
+            // Operação é concluída com êxito
+            DB::commit();
+
+            // Retornar os dados em formato de objeto e status 200
+            return response()->json([
+                'status' => true,
+                'user' => $user,
+                'message' => 'Usuário editado com sucesso!',
+            ], 200);
+
+        } catch (Exception $e) {
+
+            // Operação não é concluída com êxito
+            DB::rollBack();
+
+            // Retornar os dados em formato de objeto e status 400
+            return response()->json([
+                'status' => false,
+                'message' => 'Usuário não editado!',
+            ], 400);
+
+        }
+    }
+
+    /**
+     * Atualizar as senha de um usuário existente com base nos dados fornecidos na requisição.
+     * 
+     * @param  \App\Http\Requests\UserPasswordRequest  $request O objeto de requisição contendo os dados do usuário a ser atualizado.
+     * @param  \App\Models\User  $user O usuário a ser atualizado.
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function updatePassword(UserPasswordRequest $request, User $user): JsonResponse
+    {
+
+        // Iniciar a transação
+        DB::beginTransaction();
+
+        try {
+
+            $user->update([
+                'password' => $request->password,
+            ]);
+
+            // Operação é concluída com êxito
+            DB::commit();
+
+            // Retornar os dados em formato de objeto e status 200
+            return response()->json([
+                'status' => true,
+                'user' => $user,
+                'message' => 'Senha editada com sucesso!',
+            ], 200);
+
+        } catch (Exception $e) {
+
+            // Operação não é concluída com êxito
+            DB::rollBack();
+
+            // Retornar os dados em formato de objeto e status 400
+            return response()->json([
+                'status' => false,
+                'message' => 'Senha não editada!',
+            ], 400);
+
+        }
+    }
+
+    /**
+     * Excluir usuário no banco de dados.
+     * 
+     * @param  \App\Models\User  $user O usuário a ser excluído.
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function destroy(User $user): JsonResponse
+    {
+        try{
+
+            // Excluir o registro do banco de dados
+            $user->delete();
+
+            // Retornar os dados em formato de objeto e status 200
+            return response()->json([
+                'status' => true,
+                'user' => $user,
+                'message' => 'Usuário apagado com sucesso!',
+            ], 200);
+
+
+        } catch (Exception $e){
+            // Retornar os dados em formato de objeto e status 400
+            return response()->json([
+                'status' => false,
+                'message' => 'Usuário não apagado!',
+            ], 400);
         }
     }
 }
