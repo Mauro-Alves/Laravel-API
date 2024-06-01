@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
+use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -41,6 +43,51 @@ class LoginController extends Controller
                 'status' => false,
                 'message' => 'Login ou senha incorreta.'
             ], 404);
+        }
+    }
+
+    /**
+     * Realiza o logout do usuário.
+     *
+     * Este método revoga todos os tokens de acesso associados ao usuário, efetuando assim o logout.
+     * Se o logout for bem-sucedido, retorna uma resposta JSON indicando sucesso.
+     * Se ocorrer algum erro durante o logout, retorna uma resposta JSON indicando falha.
+     *
+     * @return \Illuminate\Http\JsonResponse Uma resposta JSON indicando o status do logout e uma mensagem correspondente.
+     */
+    public function logout() : JsonResponse
+    {
+        try{
+
+            // Verificar se o usuário está logado
+            $authUserId = Auth::check() ? Auth::id() : '';
+
+            // Retorna a mensagem de erro quando o usuário não estiver logado
+            if(!$authUserId){
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Usuário não está logado.'
+                ], 400);
+            }
+
+            // Recuperar os dados do usuário logado
+            $user = User::where('id', $authUserId)->first();
+
+            // Excluir os tokens do usuário
+            $user->tokens()->delete();
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Deslogado com sucesso.'
+            ], 200);
+
+        }catch (Exception $e){
+
+            return response()->json([
+                'status' => false,
+                'message' => 'Não deslogado.'
+            ], 400);
+
         }
     }
 }
